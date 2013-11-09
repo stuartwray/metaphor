@@ -1,0 +1,10 @@
+#comment
+BEGIN
+alpha := 1 + 1 - (2 - 1);
+beta := if this
+        then if that # and another comment
+             then -21 
+             else +10;
+# this is another comment
+delta := 'hello\u2014hello\'\\world'
+END

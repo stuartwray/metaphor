@@ -1,0 +1,51 @@
+BEGIN  <aexp>
+
+<aexp> ::= 'BEGIN' <as> REPEAT (';' <as> ) 'END';
+
+<as> ::= <id>:var ':=' <ex1>:expr
+         {'(set! ' var ' ' expr ')' NL} ;
+
+<ex1> ::= 'if' <ex1>:b 'then' <ex1>:t 'else' <ex1>:f 
+              {'(cond ' b ' ' t ' ' f ')' } |
+          'if' <ex1>:b 'then' <ex1>:t
+              {'(cond ' b ' ' t ' ' 'nil' ')' } |
+          <ex2> ;
+
+<ex2> ::= <ex3>:v 
+          REPEAT (('+' {'plus'} | '-' {'minus'}):op 
+                  <ex3>:e {'(' op ' ' v ' ' e ')'}:v ) {v};
+
+<ex3> ::= '+' <ex4> |
+          '-' <ex4>:e {'(neg ' e ')'} |
+          <ex4>;
+
+<ex4> ::= <id> |
+          <number> |
+          <string> |
+          '(' <ex1> ')';
+
+<lower> ::= ANY_OF 'abcdefghijklmnopqrstuvwxyz';
+<upper> ::= ANY_OF 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+<digit> ::= ANY_OF '0123456789';
+
+<id> ::=  <*whitespace*> (<lower> | <upper> | LITERAL '_')
+         REPEAT (<lower> | <upper> | LITERAL '_' | <digit>);
+
+<number> ::=  <*whitespace*> <digit> REPEAT <digit>;
+
+<hex_digit> ::= <digit> | ANY_OF 'abcdefABCDEF';
+<hex> ::=  <*whitespace*> <hex_digit> REPEAT <hex_digit>;
+
+<string_escape> ::= LITERAL '\\' 
+                    (ANY_OF '\\\'\"abfnrtv0' |
+                     LITERAL 'u' <hex_digit> <hex_digit> 
+                                 <hex_digit> <hex_digit>) ;
+<string> ::= <*whitespace*>
+             LITERAL '\'' 
+             REPEAT ( <string_escape> | ANY_BUT '\'')
+             LITERAL  '\'';
+
+<*whitespace*> ::= (REPEAT (ANY_OF ' \t\n\r\u000b\u000c'| <comment>)):ignore;
+<comment> ::= LITERAL '#' REPEAT (ANY_BUT '\n\r');
+
+END

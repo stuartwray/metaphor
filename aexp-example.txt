@@ -1,0 +1,10 @@
+alpha := +1+2;
+beta := -21--20;
+gamma := 10/5;
+fern := 3^2;
+ace := fern*5;
+waldo := fern+alpha/-beta^gamma;
+
+
+
+

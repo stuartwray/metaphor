@@ -1,0 +1,24 @@
+BEGIN  <aexp>
+
+<aexp> ::= <as> REPEAT <as>;
+
+<as> ::= <ID>:var ':=' <ex1>:expr ';'
+         {expr 'STORE("' var '")' NL} ;
+
+<ex1> ::= <ex2> REPEAT ('+' <ex2> {'ADD()' NL} |
+                        '-' <ex2> {'SUB()' NL} );
+
+<ex2> ::= <ex3> REPEAT ('*' <ex3> {'MUL()' NL} |
+                        '/' <ex3> {'DIV()' NL} );
+
+<ex3> ::= <ex4> REPEAT ('^' <ex3> {'EXP()' NL});
+
+<ex4> ::= '+' <ex5> |
+          '-' <ex5> {'NEG()' NL} |
+          <ex5>;
+
+<ex5> ::= <ID>:var  {'LOAD("' var '")' NL} |
+          <NUMBER>:n {'LITERAL(' n ')' NL} |
+          '(' <ex1> ')';
+
+END

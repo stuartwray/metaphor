@@ -1,0 +1,29 @@
+# git ignore file
+
+# specific files for this project
+old-metaphor-compiler.py
+verify-core.py 
+verify-metaphor-compiler.py
+new-core*.py
+new-metaphor-compiler*.py
+aexp-core.py
+aexp-compiler.py
+aexp-example-object.py
+test-core.py
+test-compiler.py
+
+# emacs backup files 
+\#*#
+.#*
+*~
+
+# python
+__pycache__
+*.pyc
+
+# various other generated files
+*.o
+
+
+
+

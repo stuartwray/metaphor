@@ -1,0 +1,8 @@
+#!/bin/sh
+# Args: runtime-header, core, runtime-trailer
+
+cat $1
+echo '['
+cat $2
+echo ']'
+cat $3

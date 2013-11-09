@@ -1,0 +1,100 @@
+BEGIN <program>
+
+<program> ::= 'BEGIN' '<' <id>:name '>' 
+              {INDENT '(ADR, \'' name '\'),' NL}
+              REPEAT <st>
+              'END' {'(END,),' NL};
+
+<st> ::= '<' <ruleid>:rule  '>' '::=' <ex1>:body ';' 
+          {'\'' rule '\',' NL
+           body 
+           '(R,),' NL};
+
+<ex1> ::= <ex2> {'\'L' GEN '\''}:label 
+          REPEAT ('|' {'(BT, ' label '),' NL} <ex2> )
+          {label ',' NL} ;
+
+<ex2> ::= {'\'L' GEN '\''}:rollback
+          {'\'L' GEN '\''}:end  
+          {'(CHECKPOINT,),' NL}
+          (<ex3> {'(BF, ' rollback '),' NL} | <output>)
+          REPEAT (<ex3> {'(BF, ' rollback '),' NL} | <output>)
+          {'(COMMIT,),' NL 
+           '(YIELD,),' NL 
+           '(B, ' end '),' NL
+           rollback ',' NL 
+           '(ROLLBACK,),' NL
+           end ',' NL};
+
+<ex3> ::= <quoted_symbol>  | 
+          <ex3yield> 
+              ( ':' <id>:id {'(STORE, \'' id '\'),' NL} | 
+              EMPTY {'(YIELD,),' NL}) |
+          'REPEAT'   {'\'L' GEN '\''}:label
+                     {label ',' NL}
+                     <ex3> 
+                     {'(BT, ' label '),' NL '(SET,),' NL};
+
+<quoted_symbol> ::= <string>:s  
+                     {'\'L' GEN '\''}:rollback
+                     {'\'L' GEN '\''}:end  
+                     {'(CHECKPOINT,),' NL
+                      '(CALL, \'*whitespace*\'),' NL
+                      '(BF, ' rollback '),' NL
+                      '(LITERAL, ' s '),' NL
+                      '(BF, ' rollback '),' NL
+                      '(COMMIT,),' NL
+                      '(B, ' end '),' NL
+                      rollback ',' NL 
+                      '(ROLLBACK,),' NL
+                      end ',' NL};
+
+<ex3yield> ::= 'ANY_OF' <string>:s {'(ANY_OF, ' s '),' NL} |
+               'ANY_BUT' <string>:s {'(ANY_BUT, ' s '),' NL} |
+               'LITERAL' <string>:s {'(LITERAL, ' s '),' NL} |
+               'GEN'       {'(GEN,),' NL} |
+               'EMPTY'     {'(SET,),' NL} |
+               '<' <ruleid>:rule '>'  {'(CALL, \'' rule '\'),' NL} |
+               '(' <ex1>:e ')'    { '(BRA,),' NL e '(KET,),' NL};
+
+<output> ::= '{' <outlist>:e '}' {'(BRA,),' NL e '(KET,),' NL}
+                ( ':' <id>:id {'(STORE, \'' id '\'),' NL} | 
+                EMPTY {'(YIELD,),' NL});
+
+<outlist> ::= REPEAT <out1>;
+
+<out1> ::= <string>:s  {'(CL, ' s '),' NL}|
+           'NL'      {'(NL,),' NL}   |
+           'TAB'     {'(TB,),' NL}   |
+           'INDENT'  {'(LMI,),' NL}  |
+           'OUTDENT' {'(LMD,),' NL}  |
+           'GEN'     {'(GEN,),' NL '(YIELD,),' NL} |
+           <id>:id   {'(LOAD, \'' id '\'),' NL '(YIELD,),' NL};
+
+<ruleid> ::= <id> | <*whitespace*>  LITERAL '*whitespace*';
+
+<lower> ::= ANY_OF 'abcdefghijklmnopqrstuvwxyz';
+<upper> ::= ANY_OF 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+<digit> ::= ANY_OF '0123456789';
+
+<id> ::=  <*whitespace*> (<lower> | <upper> | LITERAL '_')
+         REPEAT (<lower> | <upper> | LITERAL '_' | <digit>);
+
+<number> ::=  <*whitespace*> <digit> REPEAT <digit>;
+
+<hex_digit> ::= <digit> | ANY_OF 'abcdefABCDEF';
+<hex> ::=  <*whitespace*> <hex_digit> REPEAT <hex_digit>;
+
+<string_escape> ::= LITERAL '\\' 
+                    (ANY_OF '\\\'\"abfnrtv0' |
+                     LITERAL 'u' <hex_digit> <hex_digit> 
+                                 <hex_digit> <hex_digit>) ;
+<string> ::= <*whitespace*>
+             LITERAL '\'' 
+             REPEAT ( <string_escape> | ANY_BUT '\'')
+             LITERAL  '\'';
+
+<*whitespace*> ::= (REPEAT (ANY_OF ' \t\n\r\u000b\u000c'| <comment>)):ignore;
+<comment> ::= LITERAL '#' REPEAT (ANY_BUT '\n\r');
+
+END
